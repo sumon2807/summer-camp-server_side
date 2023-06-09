@@ -26,6 +26,14 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
+    const userCollection=client.db('summerDB').collection('users');
+
+    // users api
+    app.post('/users', async(req, res)=>{
+      const user=req.body;
+      const result=await userCollection.insertOne(user);
+      res.send(result);
+    });
 
 
 
