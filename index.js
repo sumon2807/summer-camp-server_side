@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cors=require('cors');
+const jwt=require('jsonwebtoken');
 require('dotenv').config()
 const port=process.env.PORT || 5000;
 
@@ -28,6 +29,12 @@ async function run() {
 
     const userCollection=client.db('summerDB').collection('users');
 
+    // JWT token api
+    app.post('/jwt', (req, res)=>{
+      const user=req.body;
+      const token=jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+      res.send({token})
+    })
     // users api
     app.get('/users', async(req, res)=>{
       const result=await userCollection.find().toArray();
