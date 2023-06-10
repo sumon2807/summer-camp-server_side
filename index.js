@@ -30,6 +30,8 @@ async function run() {
     const userCollection=client.db('summerDB').collection('users');
     const classCollection=client.db('summerDB').collection('classes');
     const instructorCollection=client.db('summerDB').collection('instructors')
+    const bookedClassCollection=client.db('summerDB').collection('bookedClass')
+    
 
     // JWT token api
     app.post('/jwt', (req, res)=>{
@@ -53,6 +55,13 @@ async function run() {
       const result=await userCollection.insertOne(user);
       res.send(result);
     });
+
+    // Enrolle Student Api
+    app.post('/bookedClass', async(req, res)=>{
+      const enrolle=req.body;
+      const result=await bookedClassCollection.insertOne(enrolle);
+      res.send(result);
+    })
 
     // Classes API
     app.get('/classes', async(req,res)=>{
