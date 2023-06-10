@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.YOGA_USER}:${process.env.YOGA_PASS}@cluster0.xj518fd.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -28,6 +28,8 @@ async function run() {
     await client.connect();
 
     const userCollection=client.db('summerDB').collection('users');
+    const classCollection=client.db('summerDB').collection('classes');
+    const instructorCollection=client.db('summerDB').collection('instructors')
 
     // JWT token api
     app.post('/jwt', (req, res)=>{
@@ -51,6 +53,17 @@ async function run() {
       const result=await userCollection.insertOne(user);
       res.send(result);
     });
+
+    // Classes API
+    app.get('/classes', async(req, res)=>{
+      const id=req.params.id;
+      const query={_id: new ObjectId(id)};
+      const options={
+        projection:{class_name: 1, price: 1, image:1, instructor_name:1, available_seats:1, class_Details:1}
+      }
+      const result=await classCollection.findOne(query, options);
+      res.send(result);
+    })
 
 
 
