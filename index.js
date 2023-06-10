@@ -55,13 +55,34 @@ async function run() {
     });
 
     // Classes API
-    app.get('/classes', async(req, res)=>{
+    app.get('/classes', async(req,res)=>{
+      const result=await classCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.get('/classes/:id', async(req, res)=>{
       const id=req.params.id;
       const query={_id: new ObjectId(id)};
       const options={
         projection:{class_name: 1, price: 1, image:1, instructor_name:1, available_seats:1, class_Details:1}
       }
       const result=await classCollection.findOne(query, options);
+      res.send(result);
+    })
+
+    // Instructor API
+    app.get('/instructors', async(req, res)=>{
+      const result=await instructorCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.get('/instructors/:id', async(req, res)=>{
+      const id=req.params.id;
+      const query={_id: new ObjectId(id)};
+      const options={
+        projection:{name: 1, image_url: 1, email:1, classes_taken:1, details_info:1, position:1}
+      }
+      const result=await instructorCollection.findOne(query, options);
       res.send(result);
     })
 
@@ -82,7 +103,7 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res)=>{
-    res.send('Yoga is running..')
+    res.send('Summer yoga is running..')
 })
 app.listen(port, ()=>{
     console.log(`Yoga is running on port ${port}`);
