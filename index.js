@@ -10,20 +10,20 @@ app.use(cors());
 app.use(express.json());
 
 
-const varifyJWT=(req, res, next)=>{
-  const authorization=req.headers.authorization;
-  if(!authorization){
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
     return res.status(401).send({
       error: true, message: 'Unauthorized access'
     })
   }
   // bearer token
-  const token=authorization.split(' ')[1];
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded)=>{
-    if(err){
-      return res.send.status(403).send({error: true, message: 'Unauthorized access'})
+  const token = authorization.split(' ')[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.send.status(403).send({ error: true, message: 'Unauthorized access' })
     }
-    req.decoded=decoded;
+    req.decoded = decoded;
     next();
   })
 }
@@ -75,30 +75,34 @@ async function run() {
       res.send(result);
     });
 
-    app.patch('/users/admin/:id', async(req, res)=>{
-      const id=req.params.id;
-      const filter={_id: new ObjectId(id)};
-      const updateDoc={
+    app.patch('/users/admin/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
         $set: {
           role: 'admin'
         },
       };
-      const result=await userCollection.updateOne(filter, updateDoc);
+      const result = await userCollection.updateOne(filter, updateDoc);
       res.send(result);
     })
 
-    app.delete('/users/:id', async(req, res)=>{
-      const id=req.params.id;
-      const query={_id: new ObjectId(id)};
-      const result=await userCollection.deleteOne(query);
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
       res.send(result);
     })
 
     // Booking class Api
-    app.get('/bookings', async (req, res) => {
+    app.get('/bookings', verifyJWT, async (req, res) => {
       const email = req.query.email;
       if (!email) {
         res.send([]);
+      }
+      const decodedEmail=req.decoded.email;
+      if(email !== decodedEmail){
+        return res.status(403).send({error: true, message: 'Forbidden access'})
       }
       const query = { email: email };
       const result = await bookingCollection.find(query).toArray();
@@ -111,10 +115,10 @@ async function run() {
       res.send(result);
     })
 
-    app.delete('/bookings/:id', async(req, res)=>{
-      const id=req.params.id;
-      const query={_id: new ObjectId(id)};
-      const result=await bookingCollection.deleteOne(query);
+    app.delete('/bookings/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.deleteOne(query);
       res.send(result);
     })
 
