@@ -10,6 +10,24 @@ app.use(cors());
 app.use(express.json());
 
 
+const varifyJWT=(req, res, next)=>{
+  const authorization=req.headers.authorization;
+  if(!authorization){
+    return res.status(401).send({
+      error: true, message: 'Unauthorized access'
+    })
+  }
+  // bearer token
+  const token=authorization.split(' ')[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded)=>{
+    if(err){
+      return res.send.status(403).send({error: true, message: 'Unauthorized access'})
+    }
+    req.decoded=decoded;
+    next();
+  })
+}
+
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.YOGA_USER}:${process.env.YOGA_PASS}@cluster0.xj518fd.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -39,7 +57,7 @@ async function run() {
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
       res.send({ token })
     })
-    
+
     // users api
     app.get('/users', async (req, res) => {
       const result = await userCollection.find().toArray();
