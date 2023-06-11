@@ -50,11 +50,23 @@ async function run() {
       const query = { email: user.email };
       const existingUser = await userCollection.findOne(query);
       if (existingUser) {
-        return res.send({ message: 'user already exists' })
+        return res.send({ message: 'User already exists' })
       }
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
+
+    app.patch('/users/admin/:id', async(req, res)=>{
+      const id=req.params.id;
+      const filter={_id: new ObjectId(id)};
+      const updateDoc={
+        $set: {
+          role: 'admin'
+        },
+      };
+      const result=await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
 
     // Booking class Api
     app.get('/bookings', async (req, res) => {
