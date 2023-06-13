@@ -58,17 +58,9 @@ async function run() {
       res.send({ token })
     })
 
-    // users api
+    // All users api
     app.get('/users', async (req, res) => {
       const result = await userCollection.find().toArray();
-      res.send(result);
-    })
-
-    app.get('/users/admin/:email', async(req, res)=>{
-      const email=req.params.email;
-      const query={email: email};
-      const user=await userCollection.findOne(query);
-      const result={admin: user?.role ==='admin'};
       res.send(result);
     })
 
@@ -83,6 +75,25 @@ async function run() {
       res.send(result);
     });
 
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+    })
+    // Admin User api
+
+    app.get('/users/admin/:email',verifyJWT, async(req, res)=>{
+      const email=req.params.email;
+      if(req.decoded.email !== email){
+       return res.send({admin: false})
+      }
+      const query={email: email};
+      const user=await userCollection.findOne(query);
+      const result={admin: user?.role ==='admin'};
+      res.send(result);
+    })
+
     app.patch('/users/admin/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -95,23 +106,46 @@ async function run() {
       res.send(result);
     })
 
-    app.delete('/users/:id', async (req, res) => {
+    // Instructor user api
+    app.get('/users/instructors/:email',verifyJWT, async(req, res)=>{
+      const email=req.params.email;
+      if(req.decoded.email !== email){
+       return res.send({instructor: false})
+      }
+      const query={email: email};
+      const user=await userCollection.findOne(query);
+      const result={instructor: user?.role ==='instructor'};
+      res.send(result);
+    })
+    
+    app.patch('/users/instructors/:id', async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await userCollection.deleteOne(query);
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: 'instructor'
+        },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
       res.send(result);
     })
 
+   
+
     // Booking class Api
-    app.get('/bookings', verifyJWT, async (req, res) => {
+    app.get('/bookings', async (req, res) => {
       const email = req.query.email;
       if (!email) {
-        res.send([]);
+        return res.send([]);
       }
-      const decodedEmail=req.decoded.email;
-      if(email !== decodedEmail){
-        return res.status(403).send({error: true, message: 'Forbidden access'})
-      }
+      
+      // TODO: when use verifyJWT token then push it
+
+      // const decodedEmail=req.decoded.email;
+      // if(email !== decodedEmail){
+      //   return res.status(403).send({error:true, message: 'Forbidden access'});
+      // }
+
       const query = { email: email };
       const result = await bookingCollection.find(query).toArray();
       res.send(result);
