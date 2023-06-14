@@ -195,6 +195,11 @@ async function run() {
       res.send(result);
     })
 
+    app.post('/classes', async(req, res)=>{
+      const items=req.body;
+      const result= await classCollection.insertOne(items);
+      res.send(result)
+    })
     // Instructor API
     app.get('/instructors', async (req, res) => {
       const result = await instructorCollection.find().toArray();
