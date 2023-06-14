@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
+const stripe=require('stripe')(process.env.PAYMENT_SECRET_KEY)
 const port = process.env.PORT || 5000;
 
 // medileware
@@ -107,17 +108,17 @@ async function run() {
     })
 
     // Instructor user api
-    app.get('/users/instructors/:email',verifyJWT, async(req, res)=>{
+    app.get('/users/instructors/:email', async(req, res)=>{
       const email=req.params.email;
-      if(req.decoded.email !== email){
-       return res.send({instructor: false})
-      }
+      // if(req.decoded.email !== email){
+      //  return res.send({instructor: false})
+      // }
       const query={email: email};
       const user=await userCollection.findOne(query);
       const result={instructor: user?.role ==='instructor'};
       res.send(result);
     })
-    
+
     app.patch('/users/instructors/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -166,7 +167,9 @@ async function run() {
 
     // Classes API
     app.get('/classes', async (req, res) => {
-      const result = await classCollection.find().toArray();
+      const query={available_seats: {$lte: 15}}
+      const cursor=classCollection.find(query)
+      const result = await cursor.toArray();
       res.send(result);
     })
 
@@ -194,6 +197,20 @@ async function run() {
       }
       const result = await instructorCollection.findOne(query, options);
       res.send(result);
+    })
+
+    // Payment api
+    app.post('/create-payment-intent', async(req, res)=>{
+      const {price}=req.body;
+      const amount=price*100;
+      const paymentIntent=await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card'] 
+      })
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      })
     })
 
 
