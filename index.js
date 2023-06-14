@@ -60,8 +60,19 @@ async function run() {
       res.send({ token })
     })
 
+    // verify Admin api
+    const verifyAdmin= async(req,res,next)=>{
+      const email=req.decoded.email;
+      const query={email: email};
+      const user=await userCollection.findOne(query);
+      if(user?.role !== 'admin'){
+        return res.status(403).send({error: true, message: 'Forbidden Access'})
+      }
+      next();
+    }
+
     // All users api
-    app.get('/users', async (req, res) => {
+    app.get('/users', verifyJWT,verifyAdmin, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     })
@@ -215,10 +226,16 @@ async function run() {
     })
 
     // payment related api
-    app.post('/payments', async(req, res)=>{
+    app.post('/payments', verifyJWT, async(req, res)=>{
       const payment=req.body;
-      const result=await paymentCollection.insertOne(payment);
-      res.send(result);
+      const insertResult=await paymentCollection.insertOne(payment);
+      // TODO: Delete One
+      // const query = { _id: new ObjectId(id) };
+      // const deleteResult=await bookingCollection.deleteOne(query);
+      // const query={_id: {$in: payment.bookingitems.map(id=>new ObjectId(id))}}
+      // const deleteResult=await bookingCollection.deleteMany(query)
+
+      res.send(insertResult);
     })
 
 
