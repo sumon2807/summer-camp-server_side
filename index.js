@@ -232,8 +232,8 @@ async function run() {
       // TODO: Delete One
       // const query = { _id: new ObjectId(id) };
       // const deleteResult=await bookingCollection.deleteOne(query);
-      // const query={_id: {$in: payment.bookingitems.map(id=>new ObjectId(id))}}
-      // const deleteResult=await bookingCollection.deleteMany(query)
+      const query={_id: {$in: payment.bookingitems.map(id=>new ObjectId(id))}}
+      const deleteResult=await bookingCollection.deleteMany(query)
 
       res.send(insertResult);
     })
