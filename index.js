@@ -50,6 +50,7 @@ async function run() {
     const classCollection = client.db('summerDB').collection('classes');
     const instructorCollection = client.db('summerDB').collection('instructors')
     const bookingCollection = client.db('summerDB').collection('bookings')
+    const paymentCollection = client.db('summerDB').collection('payments')
 
 
     // JWT token api
@@ -199,8 +200,8 @@ async function run() {
       res.send(result);
     })
 
-    // Payment api
-    app.post('/create-payment-intent', async(req, res)=>{
+    // Payment intent api
+    app.post('/create-payment-intent',verifyJWT, async(req, res)=>{
       const {price}=req.body;
       const amount=price*100;
       const paymentIntent=await stripe.paymentIntents.create({
@@ -211,6 +212,13 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret,
       })
+    })
+
+    // payment related api
+    app.post('/payments', async(req, res)=>{
+      const payment=req.body;
+      const result=await paymentCollection.insertOne(payment);
+      res.send(result);
     })
 
 
